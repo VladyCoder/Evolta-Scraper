@@ -5,99 +5,100 @@ class ProjectModel extends CI_Model {
     public function projects($control)
 	{
         try{
-            // $available_parameters = [];
+            // query : /id
             $service    = 'proyecto';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/proyecto', ['headers'  => array( 'Authorization: Bearer '.$token )]);
+            $result = curl_request('GET', $control->evolta_host.'/api/proyecto'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
-            
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
+            return;
 
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
+            return;
         }
     }
 
     public function projectDetail($control)
 	{
         try{
-            // $available_parameters = ['id'];
-            $service    = 'proyecto_detalle';
-            $parameter = '178';
+            // query : id;
+            $service    = 'proyecto';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/proyecto/'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+            $result = curl_request('GET', $control->evolta_host.'/api/proyecto'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
-            
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
+            return;
 
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
+            return;
         }
     }
     
     public function etapaDetail($control)
 	{
         try{
-            // $available_parameters = ['id'];
-            $service    = 'etapa_detalle';
-            $parameter = '178';
+            // query : id
+            $service    = 'etapa';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/etapa/'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+            $result = curl_request('GET', $control->evolta_host.'/api/etapa'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
-            
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
+            return;
 
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
+            return;
         }
     }
     
     public function edificioDetail($control)
 	{
         try{
-            // $available_parameters = ['id'];
-            $service    = 'edificio_detalle';
-            $parameter = '178';
+            // query : id
+            $service    = 'edificio';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/edificio/'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+            $result = curl_request('GET', $control->evolta_host.'/api/edificio'.$parameter, ['headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
-            
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
+            return;
             
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
+            return;
         }
 	}
 }

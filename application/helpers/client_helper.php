@@ -23,13 +23,19 @@
         
         curl_setopt($ch, CURLOPT_ENCODING, '');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE); 
+        curl_setopt($ch, CURLOPT_TIMEOUT, 100);
 
         $response = curl_exec($ch);
 
+        if(curl_errno($ch)){
+            $result = null;
+        }else{
+            $result = json_decode($response);
+        }
+
         curl_close($ch);
 
-        if ($response === false) return null;
-        return json_decode($response);
+        return $result;
     }
 
     function flatten_request_data($data, $parentKey = null)
@@ -41,15 +47,16 @@
                 $_list = flatten_request_data($value);
                 $flatten = join_array($flatten, $_list);
             }
-            
         }else if(is_object($data)) {
             $data_array = (array)$data;
             foreach ( $data_array as $key => $value) {
-                $_list = flatten_request_data($value, $key);
-                $flatten = join_data($key, $flatten, $_list, $parentKey);
+                if(count((array)$value) > 0) {
+                    $_list = flatten_request_data($value, $key);
+                    $flatten = join_data($key, $flatten, $_list, $parentKey);
+                }
             }
         }else{
-            return $data;
+            return strval($data);
         }
         
         return $flatten;
@@ -117,4 +124,29 @@
         }
 
         return $fields;
+    }
+
+    function merge_array_key($key_list, $data){
+        
+        $default = array_fill_keys($key_list, '');
+        $new_data = array();
+
+        foreach($data as $row){
+            $new_data[] = array_merge($default, $row);
+        }
+
+        return $new_data;
+    }
+
+    function build_query($params){
+        $query = '';
+        if($params){
+			foreach($params as $param){
+				if($param->parametro == 'id') return '/'.$param->valor;
+				else if($query == '') $query .= '?'.$param->parametro.'='.$param->valor;
+				else $query .= '&'.$param->parametro.'='.$param->valor;
+			}
+        }
+
+        return $query;
     }

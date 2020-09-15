@@ -5,73 +5,68 @@ class UserModel extends CI_Model {
     public function users($control)
 	{
         try {
-            // $available_parameters = [];
+            // query : id
             $service    = 'usuario';
-            // $parameter = '178';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/usuario', [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
+            $result = curl_request('GET', $control->evolta_host.'/api/usuario'.$parameter, [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
             
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
         }
     }
 
     public function userDetail($control)
 	{
         try {
-            // $available_parameters = [];
+            // query : id
             $service    = 'usuario_detalle';
-            $parameter = '1345';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/usuario/'.$parameter, [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
-            
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
-            
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
+            $result = curl_request('GET', $control->evolta_host.'/api/usuario'.$parameter, [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
 
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
         }
     }
     
+
     public function clients($control)
 	{
         try {
-            // $available_parameters = [];
+            // query : id
             $service    = 'cliente';
-            // $parameter = '178';
+            $params     = $control->getServiceParams($service);
+            $parameter  = build_query($params);
 
             $token = $control->getToken();
-            $result = curl_request('GET', $control->evolta_host.'/api/cliente', [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
-            $result = array_slice($result, 0, 10); /// temparay code  * memory limit
-
-            $data = flatten_request_data($result);
-            $fields = generate_db_fields($data);
+            $result = curl_request('GET', $control->evolta_host.'/api/cliente'.$parameter, [ 'headers'  => array( 'Authorization: Bearer '.$token )]);
             
-            $this->dbforge->add_field($fields);
-            $this->dbforge->create_table($service, TRUE);
-
-            $this->db->insert_batch($service, $data);
-            
-            return $data;
+            if(!isset($result) || empty($result) || is_string($result)){
+                $control->log($service, $params, 'fail');
+            }else{
+                $control->saveData($service, $result);
+                $control->log($service, $params, 'success');    
+            }
         }catch(Exception $err){
-            return 'failed';
+            $control->log($service, $params, 'fail');
         }
         
 	}
