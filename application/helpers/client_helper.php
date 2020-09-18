@@ -126,6 +126,16 @@
         return $fields;
     }
 
+    function get_db_fields($rows){
+        $fields = array();
+        foreach($rows as $row){
+            $columns = array_keys((array)$row);
+            $fields = array_merge($fields, $columns);
+        }
+
+        return $fields;
+    }
+
     function merge_array_key($key_list, $data){
         
         $default = array_fill_keys($key_list, '');
@@ -138,15 +148,30 @@
         return $new_data;
     }
 
-    function build_query($params){
+    function build_query($params, $projectId = null) {
         $query = '';
-        if($params){
-			foreach($params as $param){
-				if($param->parametro == 'id') return '/'.$param->valor;
-				else if($query == '') $query .= '?'.$param->parametro.'='.$param->valor;
-				else $query .= '&'.$param->parametro.'='.$param->valor;
-			}
+        foreach($params as $param){
+            if($param->parametro == 'id') return '/'.$param->valor;
+
+            if($query == '') $query .= '?';
+            else $query .= '&';
+
+            if($param->parametro == 'proyecto' && $projectId !== null) $query .= 'proyecto='.$projectId;
+            else if(strpos($param->valor, 'getdate') !== FALSE) {
+                $differ = substr($param->valor, 7);
+                if(empty($differ)) $query .= $param->parametro.'='.date('d-m-Y');
+                else $query .= $param->parametro.'='.date('d-m-Y', strtotime($differ.' days'));
+            }else $query .= $param->parametro.'='.$param->valor;
         }
 
         return $query;
+    }
+
+    function checkLoopByProject($params) {
+        if(!$params[0]->forproyect) return false;
+
+        foreach($params as $param){
+            if($param->parametro == 'proyecto') return true;
+        }
+        return false;
     }
