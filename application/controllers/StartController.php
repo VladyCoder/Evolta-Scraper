@@ -14,6 +14,8 @@ class StartController extends CI_Controller {
 
 		$this->load->helper('client');
 		$this->load->model('ServiceModel');
+		
+		$this->load_max_count = 500;
 
 		ini_set('memory_limit','-1');
 		ini_set('max_execution_time', 0);
@@ -80,12 +82,23 @@ class StartController extends CI_Controller {
             if(!isset($result) || empty($result) || is_string($result)){
                 $this->ServiceModel->log($tableName, $service, $query, 'fail');
             }else{
-                $this->ServiceModel->saveData($tableName, $service, $result);
+                $this->saveServiceData($tableName, $service, $result);
                 $this->ServiceModel->log($tableName, $service, $query, 'success');    
 			}
         }catch(Exception $err){
             $this->log($tableName, $service, $query, 'fail');
         }
+	}
+
+	public function saveServiceData($tableName, $service, $result){
+		if(is_array($result)){
+			for($i = 0; $i < ceil(count($result)/$this->load_max_count); $i++){
+				$_result = array_splice($result, 0, $this->load_max_count);
+				$this->ServiceModel->saveData($tableName, $service, $_result);
+			}
+		} else {
+			$this->ServiceModel->saveData($tableName, $service, $result);
+		}
 	}
 
 	public function registerProjectId($projects)

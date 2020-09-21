@@ -9,11 +9,12 @@ class ServiceModel extends CI_Model {
 		$this->load->dbforge();
         $this->load->database();
     }
-
+''
     public function tableNames($service)
     {
         $this->db->select('table_name');
         $this->db->where('servicio', $service);
+        $this->db->where('state', 1);
         $this->db->group_by('table_name');
 		$query = $this->db->get('servicio_config');
 		return $query->result();
@@ -23,7 +24,7 @@ class ServiceModel extends CI_Model {
     {   
         $this->db->select('parametro, valor, forproyect');
         $this->db->where('table_name', $name);
-        $this->db->where('state', 1);
+        // $this->db->where('state', 1);
 		$query = $this->db->get('servicio_config');
 		return $query->result();
     }
@@ -33,10 +34,9 @@ class ServiceModel extends CI_Model {
         $data = flatten_request_data($result);
         $fields = get_db_fields($data);
 
-        $isCreated = $this->db->where('table_name', $tableName)->get('table_names')->row();
-        if($isCreated){
-            $curColumns = $this->db->get($tableName)->row();
-            $curColumns = array_keys((array)$curColumns);
+        $cur_table = $this->db->where('table_name', $tableName)->get('table_names')->row();
+        if($cur_table){
+            $curColumns = explode(';', $cur_table->fields);
 
             $newFields = array_diff($fields, $curColumns);
             $fields = array_merge($curColumns, $newFields);
@@ -48,6 +48,10 @@ class ServiceModel extends CI_Model {
             ));
 
             $this->dbforge->add_column($tableName, $newFields);
+
+            $this->db->set('fields', implode(';', $fields));
+            $this->db->where('table_name', $tableName);
+            $this->db->update('table_names');
         }else{
             $newFields = array_fill_keys($fields, array(
                 'type' => 'VARCHAR',
@@ -56,10 +60,11 @@ class ServiceModel extends CI_Model {
             ));
             $this->dbforge->add_field($newFields);
             $this->dbforge->create_table($tableName, TRUE);
-            $this->db->insert('table_names', array('table_name' => $tableName));
+            $this->db->insert('table_names', array('table_name' => $tableName, 'fields' => implode(';', $fields)));
         }
 
-		$this->insertServiceData($tableName, $fields, $data);
+        $this->insertServiceData($tableName, $fields, $data);
+        unset($data, $result, $fields);
     }
 
     public function insertServiceData($tableName, $fields, $data)
@@ -84,6 +89,9 @@ class ServiceModel extends CI_Model {
     
     public function cleanDB()
 	{
+        $this->db->set('fields', '');
+        $this->db->update('table_names');
+
         $tables = $this->db->get('table_names')->result();
         foreach ($tables as $tb) {
             $this->dbforge->drop_table($tb->table_name, TRUE);
