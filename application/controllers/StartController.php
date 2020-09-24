@@ -19,25 +19,6 @@ class StartController extends CI_Controller {
 
 		ini_set('memory_limit','-1');
 		ini_set('max_execution_time', 0);
-
-		$this->service_list = array(
-			'proyecto' => '/api/proyecto',
-
-			'etapa' => '/api/etapa',
-			'edificio' => '/api/edificio',
-			'cliente' => '/api/usuario',
-			'usuario' => '/api/cliente',
-			'unidadInmobiliaria' => '/api/unidadInmobiliaria',
-
-			'modeloinmueble' => '/api/modeloinmueble',
-			'operacioncomercial' => '/api/operacioncomercial',
-			'stock' => '/api/stock',
-			'contacto' => '/api/contacto',
-			'prospecto' => '/api/prospecto',
-			'pago' => '/api/pago',
-			'estadocuenta' => '/api/estadocuenta',
-			'reporte_analisis' => '/api/reporte/analisis/formacontacto'
-		);
 	}
 
 
@@ -46,11 +27,13 @@ class StartController extends CI_Controller {
 		$this->ServiceModel->cleanDB();
 		$this->project_ids = array();
 
-		foreach ($this->service_list as $key => $url) {
-			$table_names = $this->ServiceModel->tableNames($key);
+		$services = $this->ServiceModel->services();
+
+		foreach ($services as $service) {
+			$table_names = $this->ServiceModel->tableNames($service->servicio);
 
 			foreach ($table_names as $table) {
-				$this->createTable($table->table_name, $key, $url);	
+				$this->createTable($table->table_name, $service->servicio, $service->url);
 			}
 		}
 		echo "finished ..... ";
@@ -74,8 +57,9 @@ class StartController extends CI_Controller {
 
 	public function queryService($tableName, $service, $url, $query){
 		try{
-            $token = $this->getToken();
-			$result = curl_request('GET', $this->evolta_host.$url.$query, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+			$token = $this->getToken();
+			if(substr($url, 0, 5) !== 'http:' && substr($url, 0, 6) !== 'https:') $url = $this->evolta_host.$url;
+			$result = curl_request('GET', $url.$query, ['headers'  => array( 'Authorization: Bearer '.$token )]);
 			
 			if($service == 'proyecto') $this->registerProjectId($result);
             

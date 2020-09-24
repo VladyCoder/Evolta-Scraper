@@ -9,7 +9,13 @@ class ServiceModel extends CI_Model {
 		$this->load->dbforge();
         $this->load->database();
     }
-''
+
+    public function services()
+    {
+		$query = $this->db->get('services');
+		return $query->result();
+    }
+
     public function tableNames($service)
     {
         $this->db->select('table_name');
