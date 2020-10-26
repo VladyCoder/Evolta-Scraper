@@ -175,3 +175,56 @@
         }
         return false;
     }
+
+
+    // 
+    function build_ga_query($params) {
+        $query = [];
+        $matrix_maxium = 10;
+        $dimension_maxium = 6;
+        $matrix_count = 1;
+        $dimension_count = 1;
+
+        foreach($params as $param){
+            $key = $param->parametro;
+
+            if($key == 'start-date' || $key == 'end-date'){
+                $date = 'today';
+                if(strpos($param->valor, 'getdate') !== FALSE && !empty(substr($param->valor, 7))){
+                    $date = date('Y-m-d', strtotime(substr($param->valor, 7).' days'));
+                }
+
+                $query[$key] = $date;
+            }else if(isset($query[$key])){
+                if($key == 'metrics' && $matrix_count < $matrix_maxium) {
+                    $matrix_count += 1;
+                    $query[$key] .= ','.$param->valor;
+                }else if($key == 'dimensions' && $dimension_count < $dimension_maxium){
+                    $dimension_count += 1;
+                    $query[$key] .= ','.$param->valor;
+                }
+            }else{
+                $query[$key] = $param->valor;
+            }
+        }
+
+        if(isset($query['time'])){
+            if(isset($query['dimensions'])) $query['dimensions'] .= ",".$query['time'];
+            else $query['dimensions'] = $query['time'];
+        }
+
+        if(!isset($query['dimensions'])) $query['dimensions'] = array();
+        
+        return $query;
+    }
+
+    function apply_keys($keys, $data){
+        if(!$data || !is_array($data)) return;
+
+        $_data = array();
+        foreach($data as $item){
+            $_data[] = array_combine($keys, $item);
+        }
+
+        return $_data;
+    }

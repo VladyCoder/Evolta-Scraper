@@ -54,3 +54,5 @@ $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
 $route['start'] = 'startcontroller';
+$route['service'] = 'startcontroller/service';
+$route['analytic'] = 'startcontroller/analytic';

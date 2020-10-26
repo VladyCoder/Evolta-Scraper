@@ -12,26 +12,27 @@ class ServiceModel extends CI_Model {
 
     public function services()
     {
-		$query = $this->db->get('services');
+		$query = $this->db->get('servicios');
 		return $query->result();
     }
 
-    public function tableNames($service)
+    public function tableNames($config_table, $service)
     {
         $this->db->select('table_name');
         $this->db->where('servicio', $service);
         $this->db->where('state', 1);
         $this->db->group_by('table_name');
-		$query = $this->db->get('servicio_config');
+		$query = $this->db->get($config_table);
 		return $query->result();
     }
 
-    public function getParamsInTable($name)
+    public function getParamsInTable($config_table, $name)
     {   
         $this->db->select('parametro, valor, forproyect');
         $this->db->where('table_name', $name);
         // $this->db->where('state', 1);
-		$query = $this->db->get('servicio_config');
+        $query = $this->db->get($config_table);
+
 		return $query->result();
     }
 
@@ -40,7 +41,7 @@ class ServiceModel extends CI_Model {
         $data = flatten_request_data($result);
         $fields = get_db_fields($data);
 
-        $cur_table = $this->db->where('table_name', $tableName)->get('table_names')->row();
+        $cur_table = $this->db->where('table_name', $tableName)->where('type', 'evolta')->get('table_names')->row();
         if($cur_table){
             $curColumns = explode(';', $cur_table->fields);
 
@@ -66,7 +67,7 @@ class ServiceModel extends CI_Model {
             ));
             $this->dbforge->add_field($newFields);
             $this->dbforge->create_table($tableName, TRUE);
-            $this->db->insert('table_names', array('table_name' => $tableName, 'fields' => implode(';', $fields)));
+            $this->db->insert('table_names', array('table_name' => $tableName, 'fields' => implode(';', $fields), 'type'=>'evolta'));
         }
 
         $this->insertServiceData($tableName, $fields, $data);
@@ -93,16 +94,46 @@ class ServiceModel extends CI_Model {
         $this->db->insert('servicio_log', $data);
     }
     
-    public function cleanDB()
+    public function cleanDB($type)
 	{
+        $this->db->where('type', $type);
         $this->db->set('fields', '');
         $this->db->update('table_names');
 
-        $tables = $this->db->get('table_names')->result();
+        $tables = $this->db->where('type', $type)->get('table_names')->result();
         foreach ($tables as $tb) {
             $this->dbforge->drop_table($tb->table_name, TRUE);
         }
         
-        $this->db->from('table_names')->truncate();
-	}
+        $this->db->where('type', $type);
+        $this->db->delete('table_names');
+        // $this->db->from('table_names')->truncate();
+    }
+    
+
+
+    // 
+    public function getGAParamsInTable($config_table, $name)
+    {   
+        $this->db->select('parametro, valor, forproyect');
+        $this->db->where('table_name', $name);
+        $this->db->where('state', 1);
+        $query = $this->db->get($config_table);
+
+		return $query->result();
+    }
+    public function saveGAData($tableName, $headers, $rows)
+	{
+        $_headers = array_fill_keys($headers, array(
+            'type' => 'VARCHAR',
+            'constraint' => 'MAX',
+            'null' => TRUE
+        ));
+        $this->dbforge->add_field($_headers);
+        $this->dbforge->create_table($tableName, TRUE);
+        $this->db->insert('table_names', array('table_name' => $tableName, 'fields' => implode(';', $headers), 'type' => 'ga'));
+
+        $data = apply_keys($headers, $rows);
+        $this->db->insert_batch($tableName, $data);
+    }
 }
