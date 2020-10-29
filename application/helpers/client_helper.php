@@ -152,6 +152,7 @@
         $query = '';
         foreach($params as $param){
             if($param->parametro == 'id') return '/'.$param->valor;
+            if(!$param->parametro) return '';
 
             if($query == '') $query .= '?';
             else $query .= '&';

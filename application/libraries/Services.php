@@ -23,7 +23,7 @@ class Services {
 			$table_names = $this->ServiceModel->tableNames('servicio_config', $service->servicio);
 
 			foreach ($table_names as $table) {
-				$this->createTable($table->table_name, $service->servicio, $service->url);
+				$this->createTable($table->table_name, $service, $service->url);
 			}
 		}
     }
@@ -45,20 +45,25 @@ class Services {
 
 	public function queryService($tableName, $service, $url, $query){
 		try{
-			$token = $this->getToken();
 			if(substr($url, 0, 5) !== 'http:' && substr($url, 0, 6) !== 'https:') $url = $this->evolta_host.$url;
-			$result = curl_request('GET', $url.$query, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+
+			if($service->security == 'none'){
+				$result = curl_request('GET', $url.$query, null);
+			}else{
+				$token = $this->getToken();
+				$result = curl_request('GET', $url.$query, ['headers'  => array( 'Authorization: Bearer '.$token )]);
+			}
 			
-			if($service == 'proyecto') $this->registerProjectId($result);
+			if($service->servicio == 'proyecto') $this->registerProjectId($result);
             
             if(!isset($result) || empty($result) || is_string($result)){
-                $this->ServiceModel->log($tableName, $service, $query, 'fail');
+                $this->ServiceModel->log($tableName, $service->servicio, $query, 'fail');
             }else{
-                $this->saveServiceData($tableName, $service, $result);
-                $this->ServiceModel->log($tableName, $service, $query, 'success');    
+                $this->saveServiceData($tableName, $service->servicio, $result);
+                $this->ServiceModel->log($tableName, $service->servicio, $query, 'success');    
 			}
         }catch(Exception $err){
-            $this->ServiceModel->log($tableName, $service, $query, 'fail');
+            $this->ServiceModel->log($tableName, $service->servicio, $query, 'fail');
         }
 	}
 
