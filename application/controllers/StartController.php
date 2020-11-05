@@ -18,28 +18,69 @@ class StartController extends CI_Controller {
 	}
 
 	public function index(){
-		$this->service();
-		$this->analytic();
+		header('Content-Type: application/json');
+
+		try{
+			$this->clearall();
+
+			$this->googleanalyticsreporting->runGoogleAnalyticsReporting($this->ServiceModel);
+
+			$evolta_env = $this->config->item('evolta');
+			$this->services->runServices($this->ServiceModel, $evolta_env);
+			
+			echo json_encode([
+				'execution' => true
+			]);
+		}catch(Exception $err){
+            echo json_encode([
+				'execution' => false,
+  				'message' => 'execution error'
+			]);
+        }
 	}
 
 	public function service()
 	{
-		$this->ServiceModel->cleanDB('evolta');
-		$evolta_env = $this->config->item('evolta');
+		header('Content-Type: application/json');
 
-		$this->services->runServices($this->ServiceModel, $evolta_env);
+		try{
+			$this->ServiceModel->cleanDB('evolta');
 
-		echo "Evolta Services finished ..... ";
-		return;
+			$evolta_env = $this->config->item('evolta');
+			$this->services->runServices($this->ServiceModel, $evolta_env);
+
+			echo json_encode([
+				'execution' => true
+			]);
+		}catch(Exception $err){
+			echo json_encode([
+				'execution' => false,
+  				'message' => 'execution error'
+			]);
+		}
 	}
 
 	// Google Analytics
 	public function analytic(){
-		$this->ServiceModel->cleanDB('ga');
-		$this->googleanalyticsreporting->runGoogleAnalyticsReporting($this->ServiceModel);
+		header('Content-Type: application/json');
 
-		echo "GoogleAnalyticsReporting finished....";
-		return;
+		try{
+			$this->ServiceModel->cleanDB('ga');
+			$this->googleanalyticsreporting->runGoogleAnalyticsReporting($this->ServiceModel);
+
+			echo json_encode([
+				'execution' => true
+			]);
+		}catch(Exception $err){
+			echo json_encode([
+				'execution' => false,
+  				'message' => 'execution error'
+			]);
+		}
 	}
 
+	public function clearall(){
+		$this->ServiceModel->cleanDB('evolta');
+		$this->ServiceModel->cleanDB('ga');
+	}
 }
