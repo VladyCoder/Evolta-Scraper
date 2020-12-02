@@ -69,7 +69,8 @@ class Services {
 
 	public function saveServiceData($tableName, $service, $result){
 		if(is_array($result)){
-			for($i = 0; $i < ceil(count($result)/$this->load_max_count); $i++){
+			$repeat = ceil(count($result)/$this->load_max_count);
+			for($i = 0; $i < $repeat; $i++){
 				$_result = array_splice($result, 0, $this->load_max_count);
 				$this->ServiceModel->saveData($tableName, $service, $_result);
 			}
